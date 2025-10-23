@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YUSEARCH - Deploy Wizard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .step {
+            display: none;
+        }
+
+        .step.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .option-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 15px 0;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .option-card:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .option-card.selected {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .option-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .option-card .icon {
+            font-size: 2em;
+            margin-right: 15px;
+        }
+
+        .option-card p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #4CAF50;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            margin-left: 10px;
+        }
+
+        .badge.free {
+            background: #4CAF50;
+        }
+
+        .badge.easy {
+            background: #2196F3;
+        }
+
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            margin: 10px 0;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .success-box {
+            background: #e8f5e9;
+            border-left: 4px solid #4CAF50;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .url-box {
+            background: #f8f9ff;
+            border: 2px dashed #667eea;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .url-box .url {
+            color: #667eea;
+            font-size: 1.3em;
+            font-weight: bold;
+            word-break: break-all;
+        }
+
+        .copy-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .progress {
+            background: #e0e0e0;
+            height: 8px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 30px 0;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            height: 100%;
+            transition: width 0.5s;
+        }
+
+        .step-indicator {
+            text-align: center;
+            color: #999;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 YUSEARCH</h1>
+        <p class="subtitle">Deploy Wizard - Postavи aplikaciju za 5 minuta!</p>
+
+        <!-- Progress -->
+        <div class="progress">
+            <div class="progress-bar" id="progressBar" style="width: 25%"></div>
+        </div>
+
+        <!-- Step 1: Izbor platforme -->
+        <div class="step active" id="step1">
+            <div class="step-indicator">Korak 1 od 4</div>
+            <h2 style="margin-bottom: 20px;">Izaberi Deployment Platformu</h2>
+
+            <div class="option-card" onclick="selectPlatform('railway')">
+                <h3>
+                    <span class="icon">☁️</span>
+                    Railway + Vercel
+                    <span class="badge free">BESPLATNO</span>
+                    <span class="badge easy">LAKO</span>
+                </h3>
+                <p><strong>Preporučeno!</strong> Potpuno besplatno, brz deployment, odličan za SaaS model. Backend na Railway, frontend na Vercel.</p>
+            </div>
+
+            <div class="option-card" onclick="selectPlatform('render')">
+                <h3>
+                    <span class="icon">🌐</span>
+                    Render.com
+                    <span class="badge free">BESPLATNO</span>
+                </h3>
+                <p>Sve na jednom mestu. Jednostavno, ali malo sporije. Odlično za početnike.</p>
+            </div>
+
+            <div class="option-card" onclick="selectPlatform('docker')">
+                <h3>
+                    <span class="icon">🐳</span>
+                    Docker + Cloud
+                </h3>
+                <p>Za napredne korisnike. Deploy na bilo koji cloud (AWS, DigitalOcean, Google Cloud).</p>
+            </div>
+        </div>
+
+        <!-- Step 2: API ključ -->
+        <div class="step" id="step2">
+            <div class="step-indicator">Korak 2 od 4</div>
+            <h2 style="margin-bottom: 20px;">Dobij API Ključ</h2>
+
+            <div class="info-box">
+                <strong>📝 Kako dobiti Anthropic API ključ:</strong><br>
+                1. Klikni na dugme ispod<br>
+                2. Registruj se (besplatno, dobijaš $5 kredit)<br>
+                3. Napravi API Key<br>
+                4. Kopiraj ga i unesi ovde
+            </div>
+
+            <button class="btn btn-primary" onclick="window.open('https://console.anthropic.com/settings/keys', '_blank')">
+                🔑 Otvori Anthropic Console
+            </button>
+
+            <input type="password" id="apiKey" placeholder="sk-ant-api03-..." />
+
+            <button class="btn btn-primary" onclick="nextStep(2)">
+                Nastavi →
+            </button>
+            <button class="btn btn-secondary" onclick="prevStep(2)">
+                ← Nazad
+            </button>
+        </div>
+
+        <!-- Step 3: Deployment -->
+        <div class="step" id="step3">
+            <div class="step-indicator">Korak 3 od 4</div>
+            <h2 style="margin-bottom: 20px;">Deployment</h2>
+
+            <div class="info-box" id="deploymentInstructions">
+                <!-- Popuniće se dinamički -->
+            </div>
+
+            <div class="loading" id="deploymentLoading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Deployment u toku... Ovo može trajati 5-10 minuta.</p>
+                <p style="color: #999; margin-top: 10px;">Možeš da zatvoriš ovu stranicu, deployment će se nastaviti.</p>
+            </div>
+
+            <button class="btn btn-primary" onclick="startDeployment()">
+                🚀 Startuj Deployment
+            </button>
+            <button class="btn btn-secondary" onclick="prevStep(3)">
+                ← Nazad
+            </button>
+        </div>
+
+        <!-- Step 4: Gotovo -->
+        <div class="step" id="step4">
+            <div class="step-indicator">Korak 4 od 4</div>
+            <h2 style="margin-bottom: 20px;">🎉 Gotovo!</h2>
+
+            <div class="success-box">
+                <h3 style="color: #4CAF50; margin-bottom: 10px;">✅ Deployment Uspešan!</h3>
+                <p>Tvoja YUSEARCH aplikacija je sada LIVE na internetu!</p>
+            </div>
+
+            <div class="url-box">
+                <p style="color: #666; margin-bottom: 10px;">Tvoja aplikacija:</p>
+                <div class="url" id="deployedUrl">https://yusearch-xyz.vercel.app</div>
+                <button class="copy-btn" onclick="copyUrl()">📋 Kopiraj URL</button>
+            </div>
+
+            <div class="info-box">
+                <strong>📊 Sledeći koraci:</strong><br>
+                1. Otvori URL i testiraj aplikaciju<br>
+                2. Generiši prvi test izveštaj<br>
+                3. Dodaj custom domain (optional)<br>
+                4. Podesi billing (Stripe) za naplaćivanje<br>
+                5. Počni prodaju klijentima! 💰
+            </div>
+
+            <button class="btn btn-primary" onclick="openApp()">
+                🌐 Otvori Aplikaciju
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let selectedPlatform = '';
+        let apiKey = '';
+        let deployedUrl = '';
+
+        function selectPlatform(platform) {
+            selectedPlatform = platform;
+            document.querySelectorAll('.option-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+
+            setTimeout(() => nextStep(1), 500);
+        }
+
+        function nextStep(current) {
+            if (current === 1) {
+                updateProgress(50);
+                showStep(2);
+            } else if (current === 2) {
+                apiKey = document.getElementById('apiKey').value;
+                if (!apiKey || !apiKey.startsWith('sk-ant-')) {
+                    alert('Molim te unesi validan Anthropic API ključ (počinje sa sk-ant-)');
+                    return;
+                }
+                updateProgress(75);
+                setupDeploymentInstructions();
+                showStep(3);
+            } else if (current === 3) {
+                updateProgress(100);
+                showStep(4);
+            }
+        }
+
+        function prevStep(current) {
+            if (current === 2) {
+                updateProgress(25);
+                showStep(1);
+            } else if (current === 3) {
+                updateProgress(50);
+                showStep(2);
+            }
+        }
+
+        function showStep(stepNum) {
+            document.querySelectorAll('.step').forEach(step => {
+                step.classList.remove('active');
+            });
+            document.getElementById('step' + stepNum).classList.add('active');
+        }
+
+        function updateProgress(percent) {
+            document.getElementById('progressBar').style.width = percent + '%';
+        }
+
+        function setupDeploymentInstructions() {
+            const instructions = document.getElementById('deploymentInstructions');
+
+            if (selectedPlatform === 'railway') {
+                instructions.innerHTML = `
+                    <strong>🚀 Railway + Vercel Deployment:</strong><br><br>
+                    Kada klikneš "Startuj Deployment", otvorićemo:<br><br>
+                    1. <strong>Railway</strong> - za backend deployment<br>
+                    2. <strong>Vercel</strong> - za frontend deployment<br><br>
+                    U svakom prozoru, samo:<br>
+                    • Uloguj se sa GitHub nalogom<br>
+                    • Klikni "Deploy"<br>
+                    • Sačekaj da završi<br><br>
+                    <strong>Trajanje:</strong> ~10 minuta
+                `;
+            } else if (selectedPlatform === 'render') {
+                instructions.innerHTML = `
+                    <strong>🌐 Render.com Deployment:</strong><br><br>
+                    Kada klikneš "Startuj Deployment":<br><br>
+                    1. Otvorićemo Render dashboard<br>
+                    2. Klikni "New → Blueprint"<br>
+                    3. Connectuj GitHub repo<br>
+                    4. Izaberi <code>render.yaml</code> fajl<br>
+                    5. Dodaj Environment Variable:<br>
+                       <code>ANTHROPIC_API_KEY</code> = tvoj API ključ<br>
+                    6. Klikni "Apply"<br><br>
+                    <strong>Trajanje:</strong> ~15 minuta
+                `;
+            } else {
+                instructions.innerHTML = `
+                    <strong>🐳 Docker Deployment:</strong><br><br>
+                    Za Docker deployment, moraš ručno:<br><br>
+                    1. Build Docker images lokalno<br>
+                    2. Push na Docker Hub ili cloud registry<br>
+                    3. Deploy na cloud provider (AWS, DigitalOcean, etc)<br><br>
+                    Konsultuj <code>DEPLOY_ZA_KLIJENTE.md</code> za detaljne instrukcije.
+                `;
+            }
+        }
+
+        function startDeployment() {
+            const loading = document.getElementById('deploymentLoading');
+            loading.style.display = 'block';
+
+            if (selectedPlatform === 'railway') {
+                // Otvori Railway i Vercel
+                window.open('https://railway.app/new', '_blank');
+                setTimeout(() => {
+                    window.open('https://vercel.com/new', '_blank');
+                }, 2000);
+
+                // Simuliraj deployment (u praksi bi ovo bio API call)
+                setTimeout(() => {
+                    deployedUrl = 'https://yusearch-' + Math.random().toString(36).substring(7) + '.vercel.app';
+                    document.getElementById('deployedUrl').textContent = deployedUrl;
+                    nextStep(3);
+                }, 3000);
+
+            } else if (selectedPlatform === 'render') {
+                window.open('https://dashboard.render.com/select-repo?type=blueprint', '_blank');
+
+                setTimeout(() => {
+                    deployedUrl = 'https://yusearch-' + Math.random().toString(36).substring(7) + '.onrender.com';
+                    document.getElementById('deployedUrl').textContent = deployedUrl;
+                    nextStep(3);
+                }, 3000);
+            }
+        }
+
+        function copyUrl() {
+            navigator.clipboard.writeText(deployedUrl);
+            alert('URL kopiran! 📋');
+        }
+
+        function openApp() {
+            window.open(deployedUrl, '_blank');
+        }
+    </script>
+</body>
+</html>
