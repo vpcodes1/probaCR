@@ -1,12 +1,11 @@
-"""Main FastAPI application."""
+"""Main Flask application for B2B Hub."""
+import os
 import logging
-from contextlib import asynccontextmanager
+from flask import Flask, jsonify
+from flask_cors import CORS
 
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-
-from app.api import reports
-from app.config import get_settings
+from .database import init_db
+from .api import auth_bp, listings_bp, messages_bp, companies_bp
 
 # Configure logging
 logging.basicConfig(
@@ -17,61 +16,70 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """Application lifespan events."""
-    logger.info("Starting YUSEARCH API")
-    yield
-    logger.info("Shutting down YUSEARCH API")
+def create_app():
+    """Create and configure Flask app."""
+    app = Flask(__name__)
+
+    # Configuration
+    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'b2b-hub-secret-key-change-in-production')
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///b2b_hub.db')
+
+    # CORS configuration
+    CORS(app, resources={
+        r"/api/*": {
+            "origins": ["*"],
+            "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+            "allow_headers": ["Content-Type", "Authorization"]
+        }
+    })
+
+    # Initialize database
+    with app.app_context():
+        init_db()
+        logger.info("Database initialized")
+
+    # Register blueprints
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(listings_bp)
+    app.register_blueprint(messages_bp)
+    app.register_blueprint(companies_bp)
+
+    # Root endpoint
+    @app.route('/')
+    def root():
+        """Root endpoint."""
+        return jsonify({
+            "message": "Welcome to B2B Hub API",
+            "version": "1.0.0",
+            "endpoints": {
+                "auth": "/api/auth",
+                "listings": "/api/listings",
+                "messages": "/api/messages",
+                "companies": "/api/companies"
+            }
+        })
+
+    # Health check endpoint
+    @app.route('/health')
+    def health_check():
+        """Health check endpoint."""
+        return jsonify({
+            "status": "healthy",
+            "service": "B2B Hub"
+        })
+
+    logger.info("B2B Hub API started successfully")
+    return app
 
 
-# Create FastAPI app
-app = FastAPI(
-    title="YUSEARCH API",
-    description="AI-Powered Prospect Research Tool",
-    version="1.0.0",
-    lifespan=lifespan,
-)
-
-# Configure CORS
-settings = get_settings()
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.allowed_origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Include routers
-app.include_router(reports.router)
-
-
-@app.get("/")
-async def root():
-    """Root endpoint."""
-    return {
-        "message": "Welcome to YUSEARCH API",
-        "version": "1.0.0",
-        "docs": "/docs",
-    }
-
-
-@app.get("/health")
-async def health_check():
-    """Health check endpoint."""
-    return {
-        "status": "healthy",
-        "service": "YUSEARCH",
-    }
+# Create app instance
+app = create_app()
 
 
 if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run(
-        "app.main:app",
+    port = int(os.getenv('PORT', 5000))
+    app.run(
         host="0.0.0.0",
-        port=8000,
-        reload=True,
+        port=port,
+        debug=True
     )
